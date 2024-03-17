@@ -1,29 +1,32 @@
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-from authAPI.serializers import UserSerializer#,UserLoginSerializer,UserProfileSerializer,UserChangePasswordSerializer,SendPasswordResetEmailSerializer,UserPasswordResetSerializer
-# from account.renderers import UserRenderer
+from authAPI.serializers import UserSerializer ,UserRegistrationSerializer  #,UserLoginSerializer,UserProfileSerializer,UserChangePasswordSerializer,SendPasswordResetEmailSerializer,UserPasswordResetSerializer
+from authAPI.renderers import UserRenderer
 from .models import User
 from django.contrib.auth import authenticate
-# from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import get_object_or_404
 
-# def get_tokens_for_user(user):
-#     refresh = RefreshToken.for_user(user)
 
-#     return {
-#         'refresh': str(refresh),
-#         'access': str(refresh.access_token),
-#     }
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
 
-# class UserRegistrationView(APIView):
-#   renderer_classes = [UserRenderer]
-#   def post(self,request,format=None):
-#     serializer = UserRegistrationSerializer(data=request.data)
-#     serializer.is_valid(raise_exception=True)
-#     user = serializer.save()
-#     token = get_tokens_for_user(user)
-#     return Response({'token':token,'msg':'Registration Success'},status=status.HTTP_201_CREATED)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+class UserRegistrationView(APIView):
+  renderer_classes = [UserRenderer]
+ 
+  def post(self,request,format=None):
+    serializer = UserRegistrationSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = serializer.save()
+    token = get_tokens_for_user(user)
+    return Response({'token':token,'msg':'Registration Success'},status=status.HTTP_201_CREATED)
 
 
 # class UserLoginView(APIView):
@@ -42,22 +45,26 @@ from rest_framework.permissions import IsAuthenticated
     
 
 class UserProfileView(APIView):
-#   renderer_classes = [UserRenderer]
-#   permission_classes = [IsAuthenticated]
-  def get(self, request, id=None):
-    if id:
-        items = User.objects.get(id=id)
-        serializer = UserSerializer(items , many = True)
+    def get(self, request, id=None):
+        if id:
+            user = get_object_or_404(User, id=id)
+            serializer = UserSerializer(user)  # Pass single instance to serializer
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        users = User.objects.all()
+        serializer = UserSerializer(users, many=True)  # Pass queryset to serializer
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    items = User.objects.all()
-    serializer = UserSerializer(items)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-    
+    # def post(self, request):
+    #     serializer = UserSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
   
 # class UserChangePasswordView(APIView):
-#   renderer_classes = [UserRenderer]
-#   permission_classes = [IsAuthenticated]
+  # renderer_classes = [UserRenderer]
+  # permission_classes = [IsAuthenticated]
 #   def post(self, request, format=None):
 #     serializer = UserChangePasswordSerializer(data=request.data, context={'user':request.user})
 #     serializer.is_valid(raise_exception=True)
