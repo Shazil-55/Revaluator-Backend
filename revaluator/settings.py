@@ -83,11 +83,11 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "revaluator",
         "USER": "postgres",
-        "PASSWORD": "postgres",
+        "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5432",
+        "PORT": "5433",
     }
-    
+
 }
 
 
